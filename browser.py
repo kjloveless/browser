@@ -120,5 +120,8 @@ def lex(body):
 
 if __name__ == "__main__":
     import sys
-    Browser().load(URL(sys.argv[1]))
+    path = "file://suspense.txt"
+    if len(sys.argv) > 1:
+        path = sys.argv[1]
+    Browser().load(URL(path))
     tkinter.mainloop()
