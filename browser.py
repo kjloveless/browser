@@ -126,7 +126,7 @@ class Layout:
             self.size += 2
         elif tok == "big":
             self.size += 4
-        elif self.size == "/big":
+        elif tok == "/big":
             self.size -= 4
         elif tok == "br":
             self.flush()
