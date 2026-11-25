@@ -34,14 +34,19 @@ def get_font(size, weight, style):
         FONTS[key] = (font, label)
     return FONTS[key][0]
 
-def style(node):
+def style(node, rules):
+    from parser import CSSParser
     node.style = {}
+    for selector, body in rules:
+        if not selector.matches(node): continue
+        for property, value in body.items():
+            node.style[property] = value
     if isinstance(node, Element) and "style" in node.attributes:
         pairs = CSSParser(node.attributes["style"]).body()
         for property, value in pairs.items():
             node.style[property] = value
     for child in node.children:
-        style(child)
+        style(child, rules)
 
 class DrawText:
     def __init__(self, x1, y1, text, font):
