@@ -34,6 +34,15 @@ def get_font(size, weight, style):
         FONTS[key] = (font, label)
     return FONTS[key][0]
 
+def style(node):
+    node.style = {}
+    if isinstance(node, Element) and "style" in node.attributes:
+        pairs = CSSParser(node.attributes["style"]).body()
+        for property, value in pairs.items():
+            node.style[property] = value
+    for child in node.children:
+        style(child)
+
 class DrawText:
     def __init__(self, x1, y1, text, font):
         self.top = y1
@@ -123,9 +132,11 @@ class BlockLayout:
     
     def paint(self):
         cmds = []
-        if isinstance(self.node, Element) and self.node.tag == "pre":
+        bg_color = self.node.style.get("background-color", "transparent")
+
+        if bg_color != "transparent":
             x2, y2 = self.x + self.width, self.y + self.height
-            rect = DrawRect(self.x, self.y, x2, y2, "gray")
+            rect = DrawRect(self.x, self.y, x2, y2, bg_color)
             cmds.append(rect)
 
         if self.layout_mode() == "inline":
