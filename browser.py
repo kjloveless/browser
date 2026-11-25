@@ -1,7 +1,7 @@
 import tkinter
 from url import URL
 from parser import HTMLParser
-from layout import Layout, WIDTH, HEIGHT, VSTEP
+from layout import DocumentLayout, WIDTH, HEIGHT, VSTEP
 
 SCROLL_STEP = 100
 
@@ -35,8 +35,10 @@ class Browser:
 
     def load(self, url):
         body = url.request()
-        tokens = HTMLParser(body).parse()
-        self.display_list = Layout(tokens).display_list
+        self.nodes = HTMLParser(body).parse()
+        self.document = DocumentLayout(self.nodes)
+        self.document.layout()
+        self.display_list = self.document.display_list
         self.draw()
 
 if __name__ == "__main__":
