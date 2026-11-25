@@ -10,7 +10,7 @@ class TagSelector:
 class DescendantSelector:
     def __init__(self, ancestor, descendant):
         self.ancestor = ancestor
-        self.descendat = descendant
+        self.descendant = descendant
 
     def matches(self, node):
         if not self.descendant.matches(node): return False

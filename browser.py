@@ -1,10 +1,16 @@
 import tkinter
 from url import URL
 from parser import HTMLParser, CSSParser
-from layout import DocumentLayout, WIDTH, HEIGHT, VSTEP, paint_tree, style
+from layout import DocumentLayout, WIDTH, HEIGHT, VSTEP, paint_tree, style, Element
 
 SCROLL_STEP = 100
 DEFAULT_STYLE_SHEET = CSSParser(open("browser.css").read()).parse()
+
+def tree_to_list(tree, list):
+    list.append(tree)
+    for child in tree.children:
+        tree_to_list(child, list)
+    return list
 
 class Browser:
     def __init__(self):
@@ -39,6 +45,19 @@ class Browser:
         body = url.request()
         self.nodes = HTMLParser(body).parse()
         rules = DEFAULT_STYLE_SHEET.copy()
+        links = [node.attributes["href"]
+                 for node in tree_to_list(self.nodes, [])
+                 if isinstance(node, Element)
+                 and node.tag == "link"
+                 and node.attributes.get("rel") == "stylesheet"
+                 and "href" in node.attributes]
+        for link in links:
+            style_url = url.resolve(link)
+            try:
+                body = style_url.request()
+            except:
+                continue
+            rules.extend(CSSParser(body).parse())
         style(self.nodes, rules)
         self.document = DocumentLayout(self.nodes)
         self.document.layout()
