@@ -1,4 +1,5 @@
 from layout import Text, Element
+from selectors import TagSelector, DescendantSelector
 
 class CSSParser:
     def __init__(self, s):

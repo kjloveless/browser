@@ -1,3 +1,5 @@
+from layout import Element
+
 class TagSelector:
     def __init__(self, tag):
         self.tag = tag
