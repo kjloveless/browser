@@ -1,6 +1,4 @@
-<html>
 !!!
 <b>!!!</b>
 <i>!!!</i>
 normal, <small>small,</small> <big>big</big>
-</html>

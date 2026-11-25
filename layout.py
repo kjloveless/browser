@@ -60,6 +60,8 @@ class Layout:
             self.size -= 2
         elif tag == "big":
             self.size += 4
+        elif tag == "br":
+            self.flush()
 
     def close_tag(self, tag):
         if tag == "i":
@@ -70,6 +72,9 @@ class Layout:
             self.size += 2
         elif tag == "big":
             self.size -= 4
+        elif tag == "p":
+            self.flush()
+            self.cursor_y += VSTEP
 
     def recurse(self, tree):
         if isinstance(tree, Text):
@@ -98,16 +103,6 @@ class Layout:
         self.cursor_y = baseline + 1.25 * max_descent
         self.cursor_x = HSTEP
         self.line = []
-
-    def token(self, tok):
-        if isinstance(tok, Text):
-            for word in tok.text.split():
-                self.word(word)
-        elif tok == "br":
-            self.flush()
-        elif tok == "/p":
-            self.flush()
-            self.cursor_y += VSTEP
 
     def word(self, word):
         font = get_font(
