@@ -14,6 +14,13 @@ BLOCK_ELEMENTS = [
     "legend", "details", "summary"
 ]
 
+INHERITED_PROPERTIES = {
+    "font-size":    "16px",
+    "font-style":   "normal",
+    "font-weight":  "normal",
+    "color":        "black",
+}
+
 def print_tree(node, indent=0):
     print(" " * indent, node)
     for child in node.children:

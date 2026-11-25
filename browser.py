@@ -2,6 +2,7 @@ import tkinter
 from url import URL
 from parser import HTMLParser, CSSParser
 from layout import DocumentLayout, WIDTH, HEIGHT, VSTEP, paint_tree, style, Element
+from css import cascade_priority
 
 SCROLL_STEP = 100
 DEFAULT_STYLE_SHEET = CSSParser(open("browser.css").read()).parse()
@@ -58,7 +59,7 @@ class Browser:
             except:
                 continue
             rules.extend(CSSParser(body).parse())
-        style(self.nodes, rules)
+        style(self.nodes, sorted(rules, key=cascade_priority))
         self.document = DocumentLayout(self.nodes)
         self.document.layout()
         self.display_list = []
