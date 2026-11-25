@@ -1,11 +1,10 @@
 from layout import Text, Element
 
-SELF_CLOSING_TAGS = [
-    "area", "base", "br", "col", "embed", "hr", "img", "input",
-    "link", "meta", "param", "source", "track", "wbr",
-]
-
 class HTMLParser:
+    SELF_CLOSING_TAGS = [
+        "area", "base", "br", "col", "embed", "hr", "img", "input",
+        "link", "meta", "param", "source", "track", "wbr",
+    ]
     HEAD_TAGS = [
         "base", "basefont", "bgsound", "noscript",
         "link", "meta", "title", "style", "script",
@@ -59,7 +58,7 @@ class HTMLParser:
             node = self.unfinished.pop()
             parent = self.unfinished[-1]
             parent.children.append(node)
-        elif tag in SELF_CLOSING_TAGS:
+        elif tag in self.SELF_CLOSING_TAGS:
             parent = self.unfinished[-1]
             node = Element(tag, attributes, parent)
             parent.children.append(node)
