@@ -44,6 +44,12 @@ def get_font(size, weight, style):
 def style(node, rules):
     from parser import CSSParser
     node.style = {}
+    for property, default_value in INHERITED_PROPERTIES.items():
+        if node.parent:
+            node.style[property] = node.parent.style[property]
+        else:
+            node.style[property] = default_value
+
     for selector, body in rules:
         if not selector.matches(node): continue
         for property, value in body.items():
@@ -52,15 +58,26 @@ def style(node, rules):
         pairs = CSSParser(node.attributes["style"]).body()
         for property, value in pairs.items():
             node.style[property] = value
+    
+    if node.style["font-size"].endswith("%"):
+        if node.parent:
+            parent_font_size = node.parent.style["font-size"]
+        else:
+            parent_font_size = INHERITED_PROPERTIES["font-size"]
+        node_pct = float(node.style["font-size"][:-1]) / 100
+        parent_px = float(parent_font_size[:-2])
+        node.style["font-size"] = str(node_pct * parent_px) + "px"
+
     for child in node.children:
         style(child, rules)
 
 class DrawText:
-    def __init__(self, x1, y1, text, font):
+    def __init__(self, x1, y1, text, font, color):
         self.top = y1
         self.left = x1
         self.text = text
         self.font = font
+        self.color = color
         self.bottom = y1 + font.metrics("linespace")
 
     def execute(self, scroll, canvas):
@@ -68,7 +85,8 @@ class DrawText:
             self.left, self.top - scroll,
             text=self.text,
             font=self.font,
-            anchor='nw')
+            anchor='nw',
+            fill=self.color)
 
 class DrawRect:
     def __init__(self, x1, y1, x2, y2, color):
@@ -152,8 +170,8 @@ class BlockLayout:
             cmds.append(rect)
 
         if self.layout_mode() == "inline":
-            for x, y, word, font in self.display_list:
-                cmds.append(DrawText(x, y, word, font))
+            for x, y, word, font, color in self.display_list:
+                cmds.append(DrawText(x, y, word, font, color))
         return cmds
 
     def layout(self):
@@ -218,7 +236,7 @@ class BlockLayout:
     def recurse(self, tree):
         if isinstance(tree, Text):
             for word in tree.text.split():
-                self.word(word)
+                self.word(tree, word)
         else:
             self.open_tag(tree.tag)
             for child in tree.children:
@@ -228,33 +246,40 @@ class BlockLayout:
     def flush(self):
         if not self.line: return
 
+        metrics = [font.metrics() for x, word, font, color in self.line]
         max_ascent = max([font.metrics("ascent")
-            for x, word, font in self.line])
+            for x, word, font, color in self.line])
         baseline = self.cursor_y + 1.25 * max_ascent
 
-        for relative_x, word, font in self.line:
+        for relative_x, word, font, color in self.line:
             x = self.x + relative_x
             y = self.y + baseline - font.metrics("ascent")
-            self.display_list.append((x, y, word, font))
+            self.display_list.append((x, y, word, font, color))
 
         max_descent = max([font.metrics("descent")
-            for x, word, font in self.line])
+            for x, word, font, color in self.line])
 
         self.cursor_y = baseline + 1.25 * max_descent
         self.cursor_x = 0
         self.line = []
 
-    def word(self, word):
+    def word(self, node, word):
+        color = node.style["color"]
+        weight = node.style["font-weight"]
+        style = node.style["font-style"]
+        if style == "normal": style = "roman"
+        size = int(float(node.style["font-size"][:-2]) * .75)
+
         font = get_font(
-            self.size,
-            self.weight,
-            self.style)
+            size,
+            weight,
+            style)
 
         w = font.measure(word)
         if self.cursor_x + w > self.width:
             self.flush()
             self.cursor_x = 0
-        self.line.append((self.cursor_x, word, font))
+        self.line.append((self.cursor_x, word, font, color))
         self.cursor_x += w + font.measure(" ")
 
 class DocumentLayout:
